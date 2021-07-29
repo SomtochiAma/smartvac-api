@@ -2,16 +2,18 @@ package controllers
 
 import (
 	"fmt"
-	"github.com/SomtochiAma/smartvac-api/models"
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 	"net/http"
 	"strings"
+
+	"github.com/gin-gonic/gin"
+	"golang.org/x/crypto/bcrypt"
+
+	"github.com/SomtochiAma/smartvac-api/models"
 )
 
 func Signin(c *gin.Context) {
 	type UserCred struct {
-		Email string `json:"email" binding:"required"`
+		Email    string `json:"email" binding:"required"`
 		Password string `json:"password" binding:"required"`
 	}
 
@@ -67,9 +69,9 @@ func CreateUser(c *gin.Context) {
 			"error": "user already exists",
 		})
 		return
-	};
+	}
 
-	hashedPassword, err := HashPassword(newUser.Password);
+	hashedPassword, err := HashPassword(newUser.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -78,7 +80,7 @@ func CreateUser(c *gin.Context) {
 	}
 	newUser.Password = hashedPassword
 
- 	result := models.DB.Create(&newUser)
+	result := models.DB.Create(&newUser)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": result.Error.Error(),
@@ -88,14 +90,14 @@ func CreateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "signin successful",
-		"id": newUser.ID,
+		"id":      newUser.ID,
 	})
 }
 
 func GetUser(c *gin.Context) {
 	var user models.User
 	id, _ := c.Params.Get("id")
-	result := models.DB.Select("id","name", "email", "min_unit", "address").First(&user, id)
+	result := models.DB.Select("id", "name", "email", "min_unit", "address").First(&user, id)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": result.Error.Error(),
@@ -104,7 +106,7 @@ func GetUser(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"data":  user,
+		"data": user,
 	})
 }
 

@@ -4,10 +4,12 @@ import "gorm.io/gorm"
 
 type User struct {
 	gorm.Model
-	Name string `json:"name" binding:"required"`
-	Email string `json:"email" binding:"required"`
+	Name     string `json:"name" binding:"required"`
+	Email    string `json:"email" binding:"required"`
 	Password string `json:"password" binding:"required"`
-	MinUnit int `json:"min_unit"`
-	Address string `json:"address"`
-	CurrentReading []CurrentReading
+	MinUnit  int    `json:"min_unit"`
+	//Address string `json:"address"`
+	AvailableUnit  int `json:"available_unit"`
+	CurrentReading []Reading
+	Payment        []Payment
 }

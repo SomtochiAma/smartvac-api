@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"time"
 
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
@@ -26,8 +27,17 @@ func Init() (*gorm.DB, error) {
 		return nil, err
 	}
 	DB = db
-	DB.AutoMigrate(&CurrentReading{})
+	DB.AutoMigrate(&Reading{})
 	DB.AutoMigrate(&User{})
+	DB.AutoMigrate(&Payment{})
+
+	payments := Payment{
+		UserID: 1,
+		Amount: 1000,
+		Units:  250,
+		Day:    time.Now(),
+	}
+	db.Create(&payments)
 
 	return db, nil
 }
