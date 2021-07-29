@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/SomtochiAma/smartvac-api/routes"
 	"log"
+	"os"
+
+	"github.com/joho/godotenv"
 
 	"github.com/SomtochiAma/smartvac-api/models"
-	"github.com/joho/godotenv"
+	"github.com/SomtochiAma/smartvac-api/routes"
 )
 
 func main() {
@@ -27,7 +29,12 @@ func main() {
 	log.Println("Successfully connected to the database.")
 
 	r := routes.Init()
-	if err := r.Run(":8080"); err != nil {
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "8080"
+	}
+	if err := r.Run(":" + port); err != nil {
 		log.Fatal(err)
 	}
 }
