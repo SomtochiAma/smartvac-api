@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/SomtochiAma/smartvac-api/models"
 	"fmt"
 	"log"
 	"os"
