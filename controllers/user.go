@@ -18,7 +18,7 @@ type ReturnUser struct {
 	Name      string `json:"name"`
 	Email     string `json:"email"`
 	MinUnit   int    `json:"min_unit"`
-	RemUnit   int    `json:"rem_unit"`
+	UsedUnit   int    `json:"used_unit"`
 	TotalUnit int    `json:"total_unit"`
 }
 
@@ -65,8 +65,8 @@ func CreateUser(c *gin.Context) {
 		return
 	}
 
-	var existingUser models.User
-	_ = models.DB.Where("email = ?", newUser.Email).First(&existingUser)
+	var existingUser ReturnUser
+	_ = models.DB.Model(&models.User{}).Where("email = ?", newUser.Email).First(&existingUser)
 	if existingUser.Email != "" {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": "user already exists",
@@ -92,12 +92,7 @@ func CreateUser(c *gin.Context) {
 
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "signup successful",
-		"data": ReturnUser{
-			ID:      newUser.ID,
-			Name:    newUser.Name,
-			Email:   newUser.Email,
-			MinUnit: newUser.MinUnit,
-		},
+		"data": existingUser,
 	})
 }
 
@@ -119,7 +114,6 @@ func GetUser(c *gin.Context) {
 
 func UpdateUser(c *gin.Context) {
 	var user models.User
-
 	if err := c.ShouldBindJSON(&user); err != nil && !strings.Contains(err.Error(), "Field validation") {
 		c.JSON(http.StatusBadRequest, gin.H{
 			"error": err.Error(),
@@ -128,7 +122,6 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	id, _ := c.Params.Get("id")
-
 	result := models.DB.Model(models.User{}).Where("id = ?", id).Updates(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -148,7 +141,6 @@ func UpdateUser(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "update successful",
-		"data":    retUser,
 	})
 }
 
