@@ -2,10 +2,10 @@ package main
 
 import (
 	"fmt"
-	"log"
 	"os"
 
 	"github.com/joho/godotenv"
+	log "github.com/sirupsen/logrus"
 
 	"github.com/SomtochiAma/smartvac-api/models"
 	"github.com/SomtochiAma/smartvac-api/routes"
@@ -13,7 +13,7 @@ import (
 
 func main() {
 	if err := godotenv.Load(); err != nil {
-		log.Printf("unable to load .env file: %s", err)
+		log.Warnf("unable to load .env file: %s", err)
 	}
 
 	db, err := models.Init()

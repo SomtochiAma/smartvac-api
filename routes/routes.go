@@ -20,15 +20,15 @@ func Init() *gin.Engine {
 	r.POST("/signup", controllers.CreateUser)
 	r.POST("signin", controllers.Signin)
 
-	r.POST("/data", controllers.PostReading)
-	r.GET("/summary", controllers.GetTotalReading)
-	r.GET("/ws", controllers.WebSocket)
-
 	r.GET("/user/:id", controllers.GetUser)
 	r.PUT("/user/:id", controllers.UpdateUser)
 
+	r.GET("/history/:id", controllers.GetPaymentHistory)
+	r.GET("/summary/:id", controllers.GetTotalReading)
 	r.POST("/pay", controllers.MakePayment)
-	r.GET("/history", controllers.GetPaymentHistory)
+	r.POST("/data", controllers.PostReading)
+
+	r.GET("/ws", controllers.WebSocket)
 
 	return r
 }

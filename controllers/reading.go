@@ -1,7 +1,10 @@
 package controllers
 
 import (
+	"errors"
 	"fmt"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"time"
@@ -27,6 +30,15 @@ func PostReading(c *gin.Context) {
 		})
 		return
 	}
+	if err := models.DB.Model(&models.User{}).Where("id = ?", newReading.UserID).
+		UpdateColumn("used_unit",
+			gorm.Expr("used_unit + ?", newReading.TotalPower)).
+		Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
+		})
+		return
+	}
 
 	c.JSON(http.StatusOK, gin.H{
 		"data": newReading,
@@ -34,29 +46,30 @@ func PostReading(c *gin.Context) {
 }
 
 func GetTotalReading(c *gin.Context) {
-	//time := c.Query("time")
-	var latestPayment models.Payment
-	res := models.DB.Order("day desc").First(&latestPayment)
-	if res.Error != nil {
-		c.JSON(http.StatusBadRequest, gin.H{
-			"error": res.Error.Error(),
-		})
-		return
+	var user struct{
+		ID uint
+		UsedUnit int
+		TotalUnit int
 	}
+	id, _:= c.Params.Get("id")
+	fmt.Println(id)
+	err := models.DB.Model(&models.User{}).Where("id = ?", id).Select("id", "used_unit", "total_unit").First(&user).Error
+	if err != nil {
+		message := err.Error()
+		logrus.Errorf("error getting payments: %s", err)
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			message = "no such user"
+		}
 
-	var sum int
-	query := fmt.Sprintf("time > '%s'", latestPayment.Day.Format("2006-01-02T15:04:05-0700"))
-	res = models.DB.Model(&models.Reading{}).Select("sum(total_power)").Where(query).Take(&sum)
-	if res.Error != nil {
 		c.JSON(http.StatusBadRequest, gin.H{
-			"error": res.Error.Error(),
+			"message": message,
 		})
 		return
 	}
 
 	c.JSON(http.StatusOK, gin.H{
-		"used":  sum,
-		"total": latestPayment.Units,
+		"message": "usage summary retrieved successfully",
+		"data": user,
 	})
 }
 

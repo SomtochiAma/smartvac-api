@@ -1,15 +1,26 @@
 package controllers
 
 import (
-	"fmt"
+	"errors"
+	"gorm.io/gorm"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/SomtochiAma/smartvac-api/models"
 )
+
+type ReturnUser struct {
+	ID        uint   `json:"id"`
+	Name      string `json:"name"`
+	Email     string `json:"email"`
+	MinUnit   int    `json:"min_unit"`
+	RemUnit   int    `json:"rem_unit"`
+	TotalUnit int    `json:"total_unit"`
+}
 
 func Signin(c *gin.Context) {
 	type UserCred struct {
@@ -26,24 +37,16 @@ func Signin(c *gin.Context) {
 	}
 
 	var user models.User
-	result := models.DB.Where("email = ?", userCred.Email).First(&user)
-	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
-		})
-		return
-	}
-
-	if user.Email == "" {
-		c.JSON(http.StatusNotFound, gin.H{
-			"error": "user not found",
-		})
-		return
-	}
-
-	if !checkPasswordHash(userCred.Password, user.Password) {
+	err := models.DB.Where("email = ?", userCred.Email).First(&user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) || user.Email == "" || !checkPasswordHash(userCred.Password, user.Password) {
 		c.JSON(http.StatusNotFound, gin.H{
 			"error": "invalid username or password",
+		})
+		return
+	}
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": err.Error(),
 		})
 		return
 	}
@@ -80,24 +83,28 @@ func CreateUser(c *gin.Context) {
 	}
 	newUser.Password = hashedPassword
 
-	result := models.DB.Create(&newUser)
-	if result.Error != nil {
+	if err := models.DB.Create(&newUser).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
-			"error": result.Error.Error(),
+			"error": err.Error(),
 		})
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"message": "signin successful",
-		"id":      newUser.ID,
+	c.JSON(http.StatusCreated, gin.H{
+		"message": "signup successful",
+		"data": ReturnUser{
+			ID:      newUser.ID,
+			Name:    newUser.Name,
+			Email:   newUser.Email,
+			MinUnit: newUser.MinUnit,
+		},
 	})
 }
 
 func GetUser(c *gin.Context) {
-	var user models.User
+	var user ReturnUser
 	id, _ := c.Params.Get("id")
-	result := models.DB.Select("id", "name", "email", "min_unit", "address").First(&user, id)
+	result := models.DB.Model(&models.User{}).Select("id", "name", "email", "min_unit").First(&user, id)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": result.Error.Error(),
@@ -121,6 +128,7 @@ func UpdateUser(c *gin.Context) {
 	}
 
 	id, _ := c.Params.Get("id")
+
 	result := models.DB.Model(models.User{}).Where("id = ?", id).Updates(&user)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
@@ -129,8 +137,18 @@ func UpdateUser(c *gin.Context) {
 		return
 	}
 
+	var retUser ReturnUser
+	err := models.DB.Model(&models.User{}).Where("id = ?", id).First(&retUser).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "user doesn't exist",
+		})
+		return
+	}
+
 	c.JSON(http.StatusOK, gin.H{
 		"message": "update successful",
+		"data":    retUser,
 	})
 }
 
@@ -140,12 +158,11 @@ func HashPassword(password string) (string, error) {
 		return "", err
 	}
 
-	fmt.Println(string(bytes))
 	return string(bytes), nil
 }
 
 func checkPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	fmt.Println(err)
+	log.Errorf("error decrypting password: %s", err.Error())
 	return err == nil
 }
