@@ -48,14 +48,14 @@ func GetPaymentHistory(c *gin.Context) {
 	})
 }
 
-func CreatePaymentTx(payment models.Payment) func (tx *gorm.DB) error{
+func CreatePaymentTx(payment models.Payment) func(tx *gorm.DB) error {
 	return func(tx *gorm.DB) error {
 		if err := tx.Create(&payment).Error; err != nil {
 			return err
 		}
 
-		var usage struct{
-			UsedUnit int
+		var usage struct {
+			UsedUnit  int
 			TotalUnit int
 		}
 

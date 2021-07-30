@@ -28,7 +28,6 @@ func Init() (*gorm.DB, error) {
 		return nil, err
 	}
 
-	logrus.Info("%v", cred)
 	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=5432 sslmode=%s",
 		cred.host,
 		cred.username,

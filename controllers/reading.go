@@ -46,12 +46,12 @@ func PostReading(c *gin.Context) {
 }
 
 func GetTotalReading(c *gin.Context) {
-	var user struct{
-		ID uint
-		UsedUnit int
+	var user struct {
+		ID        uint
+		UsedUnit  int
 		TotalUnit int
 	}
-	id, _:= c.Params.Get("id")
+	id, _ := c.Params.Get("id")
 	fmt.Println(id)
 	err := models.DB.Model(&models.User{}).Where("id = ?", id).Select("id", "used_unit", "total_unit").First(&user).Error
 	if err != nil {
@@ -69,7 +69,7 @@ func GetTotalReading(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "usage summary retrieved successfully",
-		"data": user,
+		"data":    user,
 	})
 }
 

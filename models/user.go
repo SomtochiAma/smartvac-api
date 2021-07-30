@@ -8,8 +8,8 @@ type User struct {
 	Email          string `json:"email" binding:"required"`
 	Password       string `json:"password" binding:"required"`
 	MinUnit        int    `json:"min_unit"`
-	UsedUnit   int    `json:"used_unit"`
-	TotalUnit int    `json:"total_unit"`
+	UsedUnit       int    `json:"used_unit"`
+	TotalUnit      int    `json:"total_unit"`
 	CurrentReading []Reading
 	Payment        []Payment
 }
