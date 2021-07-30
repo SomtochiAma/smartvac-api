@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"errors"
+	log "github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"net/http"
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"golang.org/x/crypto/bcrypt"
 
 	"github.com/SomtochiAma/smartvac-api/models"
@@ -163,6 +163,8 @@ func HashPassword(password string) (string, error) {
 
 func checkPasswordHash(password, hash string) bool {
 	err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
-	log.Errorf("error decrypting password: %s", err.Error())
+	if err != nil {
+		log.Errorf("error decrypting password: %s", err)
+	}
 	return err == nil
 }
