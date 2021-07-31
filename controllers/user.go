@@ -2,13 +2,12 @@ package controllers
 
 import (
 	"errors"
+	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"net/http"
 	"strings"
-
-	"github.com/gin-gonic/gin"
-	"golang.org/x/crypto/bcrypt"
 
 	"github.com/SomtochiAma/smartvac-api/models"
 )
@@ -143,6 +142,7 @@ func UpdateUser(c *gin.Context) {
 		"message": "update successful",
 	})
 }
+
 
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)

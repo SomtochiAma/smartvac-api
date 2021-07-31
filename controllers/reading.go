@@ -7,6 +7,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/SomtochiAma/smartvac-api/models"
@@ -22,6 +23,7 @@ func PostReading(c *gin.Context) {
 		})
 		return
 	}
+	newReading.Time = time.Now()
 
 	result := models.DB.Create(&newReading)
 	if result.Error != nil {
@@ -70,6 +72,48 @@ func GetTotalReading(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "usage summary retrieved successfully",
 		"data":    user,
+	})
+}
+
+func GetPostReading(c *gin.Context)  {
+	var err error
+	userId, err := strconv.Atoi(c.Query("user_id"))
+	power, err := strconv.Atoi(c.Query("power"))
+	current, err := strconv.Atoi(c.Query("current"))
+	totalPower, err := strconv.Atoi(c.Query("total_power"))
+	if err != nil {
+		c.JSON(http.StatusOK, gin.H{
+			"error": fmt.Sprintf("unable to convert to int: %s", err),
+		})
+	}
+
+	newReading := models.Reading{
+		UserID:     userId,
+		Current:    current,
+		Power:      power,
+		TotalPower: totalPower,
+		Time:       time.Time{},
+	}
+
+	result := models.DB.Create(&newReading)
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
+		})
+		return
+	}
+	if err := models.DB.Model(&models.User{}).Where("id = ?", newReading.UserID).
+		UpdateColumn("used_unit",
+			gorm.Expr("used_unit + ?", newReading.TotalPower)).
+		Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": result.Error.Error(),
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data": newReading,
 	})
 }
 
