@@ -76,6 +76,7 @@ func GetTotalReading(c *gin.Context) {
 }
 
 func GetPostReading(c *gin.Context)  {
+	fmt.Println("here")
 	var err error
 	userId, err := strconv.Atoi(c.Query("user_id"))
 	power, err := strconv.Atoi(c.Query("power"))
@@ -92,8 +93,9 @@ func GetPostReading(c *gin.Context)  {
 		Current:    current,
 		Power:      power,
 		TotalPower: totalPower,
-		Time:       time.Time{},
+		Time:       time.Now(),
 	}
+	fmt.Printf("%v", newReading)
 
 	result := models.DB.Create(&newReading)
 	if result.Error != nil {
@@ -138,7 +140,7 @@ func GetReading(c *gin.Context) {
 		})
 		return
 	}
-	fmt.Println(len(values))
+	//fmt.Println(len(values))
 	fmt.Println(values)
 
 	c.JSON(http.StatusOK, gin.H{
@@ -164,7 +166,11 @@ func WebSocket(c *gin.Context) {
 	defer ws.Close()
 
 	for {
-		var readings []models.Reading
+		var readings []struct{
+			Sum int `json:"sum"`
+			Date time.Time `json:"date"`
+		}
+		//res := models.DB.Find(&readings)
 		res := models.DB.Model(&models.Reading{}).
 			Select("date_trunc('hour', time) as date, sum(total_power)").Group("date").
 			Order("1").
@@ -181,4 +187,20 @@ func WebSocket(c *gin.Context) {
 		}
 		time.Sleep(5 * time.Minute)
 	}
+}
+
+func GetAllReading(c *gin.Context) {
+	var readings []models.Reading
+	res := models.DB.Find(&readings)
+	if res.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{
+			"error": "unable to retrieve data",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"data":    readings,
+		"message": "readings retrieved successfully",
+	})
 }
