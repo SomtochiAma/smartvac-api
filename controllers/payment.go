@@ -1,14 +1,26 @@
 package controllers
 
 import (
+	"context"
 	"fmt"
+	"github.com/mailgun/mailgun-go/v4"
+	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 
 	"github.com/SomtochiAma/smartvac-api/models"
 )
+
+type EmailVars struct {
+	email  string
+	amount int
+	units  int
+	date   string
+	name   string
+}
 
 func MakePayment(c *gin.Context) {
 	var payment models.Payment
@@ -25,6 +37,25 @@ func MakePayment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+	}
+
+	var userDetails struct {
+		ID    int
+		Name  string
+		Email string `json:"email"`
+	}
+	models.DB.Model(&models.User{}).Select("id, name, email").Where("id = ?", payment.UserID).First(&userDetails)
+	var domain = "sandbox869c162826e04f39b909a85aeedcfc65.mailgun.org"
+	apiKey := os.Getenv("EMAIL_API_KEY")
+	_, err = SendSimpleMessage(domain, apiKey, EmailVars{
+		email:  userDetails.Email,
+		amount: payment.Amount,
+		units:  payment.Units,
+		date:   payment.Day.Format("02-01-2006"),
+		name:   userDetails.Name,
+	})
+	if err != nil {
+		logrus.Errorf("error while sending email: %s", err)
 	}
 
 	c.JSON(http.StatusOK, gin.H{
@@ -76,4 +107,22 @@ func CreatePaymentTx(payment models.Payment) func(tx *gorm.DB) error {
 
 		return nil
 	}
+}
+
+func SendSimpleMessage(domain, apiKey string, msg EmailVars) (string, error) {
+	mg := mailgun.NewMailgun(domain, apiKey)
+	m := mg.NewMessage(
+		"Excited User mailgun@sandbox869c162826e04f39b909a85aeedcfc65.mailgun.org",
+		"Receipts for your Smartvac Meter",
+		"Testing some Mailgun awesomeness!",
+		msg.email,
+	)
+	m.SetTemplate("smartvac-api")
+	m.AddTemplateVariable("name", msg.name)
+	m.AddTemplateVariable("amount", msg.amount)
+	m.AddTemplateVariable("units", msg.units)
+	m.AddTemplateVariable("date", msg.date)
+
+	_, id, err := mg.Send(context.Background(), m)
+	return id, err
 }

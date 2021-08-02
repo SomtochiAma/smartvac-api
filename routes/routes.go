@@ -27,7 +27,6 @@ func Init() *gin.Engine {
 	r.GET("/summary/:id", controllers.GetTotalReading)
 	r.POST("/pay", controllers.MakePayment)
 
-
 	r.POST("/data", controllers.PostReading)
 	r.GET("/data", controllers.GetPostReading)
 	r.GET("/alldata", controllers.GetAllReading)

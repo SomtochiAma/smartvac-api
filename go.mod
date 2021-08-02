@@ -8,6 +8,7 @@ require (
 	github.com/gorilla/websocket v0.0.0-20170926233335-4201258b820c
 	github.com/jackc/pgx/v4 v4.13.0 // indirect
 	github.com/joho/godotenv v1.3.0
+	github.com/mailgun/mailgun-go/v4 v4.5.2
 	github.com/sirupsen/logrus v1.8.1
 	golang.org/x/crypto v0.0.0-20210711020723-a769d52b0f97
 	gorm.io/driver/postgres v1.1.0

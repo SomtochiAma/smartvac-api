@@ -13,12 +13,12 @@ import (
 )
 
 type ReturnUser struct {
-	ID        uint   `json:"id"`
-	Name      string `json:"name"`
-	Email     string `json:"email"`
-	MinUnit   int    `json:"min_unit"`
-	UsedUnit   int    `json:"used_unit"`
-	TotalUnit int    `json:"total_unit"`
+	ID        uint    `json:"id"`
+	Name      string  `json:"name"`
+	Email     string  `json:"email"`
+	MinUnit   int     `json:"min_unit"`
+	UsedUnit  float32 `json:"used_unit"`
+	TotalUnit int     `json:"total_unit"`
 }
 
 func Signin(c *gin.Context) {
@@ -92,7 +92,7 @@ func CreateUser(c *gin.Context) {
 	newUser.Password = ""
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "signup successful",
-		"data": newUser,
+		"data":    newUser,
 	})
 }
 
@@ -143,7 +143,6 @@ func UpdateUser(c *gin.Context) {
 		"message": "update successful",
 	})
 }
-
 
 func HashPassword(password string) (string, error) {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)

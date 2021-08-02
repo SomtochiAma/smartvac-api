@@ -3,16 +3,17 @@ package controllers
 import (
 	"errors"
 	"fmt"
-	"github.com/sirupsen/logrus"
-	"gorm.io/gorm"
 	"log"
 	"net/http"
 	"strconv"
 	"time"
 
-	"github.com/SomtochiAma/smartvac-api/models"
 	"github.com/gin-gonic/gin"
 	"github.com/gorilla/websocket"
+	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
+
+	"github.com/SomtochiAma/smartvac-api/models"
 )
 
 func PostReading(c *gin.Context) {
@@ -75,13 +76,11 @@ func GetTotalReading(c *gin.Context) {
 	})
 }
 
-func GetPostReading(c *gin.Context)  {
-	fmt.Println("here")
-	var err error
+func GetPostReading(c *gin.Context) {
 	userId, err := strconv.Atoi(c.Query("user_id"))
-	power, err := strconv.Atoi(c.Query("power"))
-	current, err := strconv.Atoi(c.Query("current"))
-	totalPower, err := strconv.Atoi(c.Query("total_power"))
+	power, err := strconv.ParseFloat(c.Query("power"), 32)
+	current, err := strconv.ParseFloat(c.Query("current"), 32)
+	totalPower, err := strconv.ParseFloat(c.Query("total_power"), 32)
 	if err != nil {
 		c.JSON(http.StatusOK, gin.H{
 			"error": fmt.Sprintf("unable to convert to int: %s", err),
@@ -90,9 +89,9 @@ func GetPostReading(c *gin.Context)  {
 
 	newReading := models.Reading{
 		UserID:     userId,
-		Current:    current,
-		Power:      power,
-		TotalPower: totalPower,
+		Current:    float32(current),
+		Power:      float32(power),
+		TotalPower: float32(totalPower),
 		Time:       time.Now(),
 	}
 	fmt.Printf("%v", newReading)
@@ -166,8 +165,8 @@ func WebSocket(c *gin.Context) {
 	defer ws.Close()
 
 	for {
-		var readings []struct{
-			Sum int `json:"sum"`
+		var readings []struct {
+			Sum  int       `json:"sum"`
 			Date time.Time `json:"date"`
 		}
 		//res := models.DB.Find(&readings)
