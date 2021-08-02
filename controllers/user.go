@@ -50,8 +50,10 @@ func Signin(c *gin.Context) {
 		return
 	}
 
+	user.Password = ""
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Login successful",
+		"data": user,
 	})
 }
 
@@ -92,7 +94,6 @@ func CreateUser(c *gin.Context) {
 	newUser.Password = ""
 	c.JSON(http.StatusCreated, gin.H{
 		"message": "signup successful",
-		"data":    newUser,
 	})
 }
 
