@@ -100,7 +100,9 @@ func CreateUser(c *gin.Context) {
 func GetUser(c *gin.Context) {
 	var user ReturnUser
 	id, _ := c.Params.Get("id")
-	result := models.DB.Model(&models.User{}).Select("id", "name", "email", "min_unit").First(&user, id)
+	result := models.DB.Model(&models.User{}).
+		Select("id", "name", "email", "min_unit", "used_unit", "total_unit").
+		First(&user, id)
 	if result.Error != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": result.Error.Error(),
