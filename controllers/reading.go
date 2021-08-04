@@ -165,10 +165,11 @@ func WebSocket(c *gin.Context) {
 	defer ws.Close()
 
 	for {
-		var readings []struct {
+		type Readings []struct {
 			Sum  int       `json:"sum"`
 			Date time.Time `json:"date"`
 		}
+		var readings Readings
 		//res := models.DB.Find(&readings)
 		res := models.DB.Model(&models.Reading{}).
 			Select("date_trunc('hour', time) as date, sum(total_power)").Group("date").
@@ -179,7 +180,29 @@ func WebSocket(c *gin.Context) {
 			break
 		}
 
-		err = ws.WriteJSON(readings)
+		 type Units struct{
+			UsedUnit float32 `json:"used_unit"`
+			TotalUnit float32 `json:"total_unit"`
+		}
+		var units Units
+		//res := models.DB.Find(&readings)
+		total := models.DB.Model(&models.User{}).
+			Select("used_unit, total_unit").Where("id = ?", 1).
+			Take(&units)
+		if total.Error != nil {
+			log.Printf("error writing message: %s", res.Error.Error())
+			break
+		}
+
+		data := struct{
+			Units Units `json:"units"`
+			Readings Readings `json:"readings"`
+		}{
+			Units: units,
+			Readings: readings,
+		}
+
+		err = ws.WriteJSON(data)
 		if err != nil {
 			log.Printf("error writing message: %s", err.Error())
 			break
