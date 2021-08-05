@@ -18,7 +18,7 @@ func Init() *gin.Engine {
 	})
 
 	r.POST("/signup", controllers.CreateUser)
-	r.POST("signin", controllers.Signin)
+	r.POST("/signin", controllers.Signin)
 
 	r.GET("/user/:id", controllers.GetUser)
 	r.PUT("/user/:id", controllers.UpdateUser)

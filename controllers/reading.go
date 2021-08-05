@@ -166,7 +166,7 @@ func WebSocket(c *gin.Context) {
 
 	for {
 		type Readings []struct {
-			Sum  int       `json:"sum"`
+			Sum  float32       `json:"sum"`
 			Date time.Time `json:"date"`
 		}
 		var readings Readings
