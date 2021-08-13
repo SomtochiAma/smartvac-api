@@ -124,5 +124,8 @@ func SendSimpleMessage(domain, apiKey string, msg EmailVars) (string, error) {
 	m.AddTemplateVariable("date", msg.date)
 
 	_, id, err := mg.Send(context.Background(), m)
+	if err != nil {
+		logrus.Warnf("failed to send email: %s", err)
+	}
 	return id, err
 }

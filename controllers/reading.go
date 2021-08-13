@@ -190,8 +190,7 @@ func WebSocket(c *gin.Context) {
 			Select("used_unit, total_unit").Where("id = ?", 1).
 			Take(&units)
 		if total.Error != nil {
-			log.Printf("error writing message: %s", res.Error.Error())
-			break
+			logrus.Warnf("error writing message: %s", total.Error)
 		}
 
 		data := struct{
