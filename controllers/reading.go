@@ -56,7 +56,9 @@ func GetTotalReading(c *gin.Context) {
 	}
 	id, _ := c.Params.Get("id")
 	fmt.Println(id)
-	err := models.DB.Model(&models.User{}).Where("id = ?", id).Select("id", "used_unit", "total_unit").First(&user).Error
+	err := models.DB.Model(&models.User{}).Where("id = ?", id).
+		Select("id", "used_unit", "total_unit").
+		First(&user).Error
 	if err != nil {
 		message := err.Error()
 		logrus.Errorf("error getting payments: %s", err)
@@ -85,6 +87,7 @@ func GetPostReading(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"error": fmt.Sprintf("unable to convert to int: %s", err),
 		})
+		return
 	}
 
 	newReading := models.Reading{

@@ -9,7 +9,7 @@ type User struct {
 	Password       string `json:"password" binding:"required"`
 	MinUnit        int    `json:"min_unit"`
 	UsedUnit       float32    `json:"used_unit"`
-	TotalUnit      int    `json:"total_unit"`
+	TotalUnit      float32    `json:"total_unit"`
 	CurrentReading []Reading
 	Payment        []Payment
 }

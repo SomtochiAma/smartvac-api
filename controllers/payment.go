@@ -2,12 +2,12 @@ package controllers
 
 import (
 	"context"
-	"fmt"
+	"net/http"
+	"os"
+
 	"github.com/mailgun/mailgun-go/v4"
 	"github.com/sirupsen/logrus"
 	"gorm.io/gorm"
-	"net/http"
-	"os"
 
 	"github.com/gin-gonic/gin"
 
@@ -37,6 +37,7 @@ func MakePayment(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{
 			"error": err.Error(),
 		})
+		return
 	}
 
 	var userDetails struct {
@@ -44,6 +45,7 @@ func MakePayment(c *gin.Context) {
 		Name  string
 		Email string `json:"email"`
 	}
+
 	models.DB.Model(&models.User{}).Select("id, name, email").Where("id = ?", payment.UserID).First(&userDetails)
 	var domain = "sandbox869c162826e04f39b909a85aeedcfc65.mailgun.org"
 	apiKey := os.Getenv("EMAIL_API_KEY")
@@ -86,8 +88,8 @@ func CreatePaymentTx(payment models.Payment) func(tx *gorm.DB) error {
 		}
 
 		var usage struct {
-			UsedUnit  int
-			TotalUnit int
+			UsedUnit  float32
+			TotalUnit float32
 		}
 
 		if err := models.DB.Model(&models.User{}).
@@ -96,9 +98,8 @@ func CreatePaymentTx(payment models.Payment) func(tx *gorm.DB) error {
 			Take(&usage).Error; err != nil {
 			return err
 		}
-		fmt.Println(usage)
 
-		newTotal := payment.Units + (usage.TotalUnit - usage.UsedUnit)
+		newTotal := float32(payment.Units) + (usage.TotalUnit - usage.UsedUnit)
 		if err := models.DB.Model(&models.User{}).
 			Where("id = ?", payment.UserID).
 			Updates(models.User{TotalUnit: newTotal, UsedUnit: 0}).Error; err != nil {

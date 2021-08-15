@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/joho/godotenv"
@@ -23,7 +22,7 @@ func main() {
 
 	postgresDB, err := db.DB()
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	defer postgresDB.Close()
 	log.Println("Successfully connected to the database.")

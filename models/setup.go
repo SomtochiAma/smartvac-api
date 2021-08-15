@@ -43,8 +43,8 @@ func Init() (*gorm.DB, error) {
 	if os.Getenv("DROP_TABLE") == "true" {
 		logrus.Info("dropping existing tables")
 		DB.Migrator().DropTable(&Reading{})
-		DB.Migrator().DropTable(&User{})
 		DB.Migrator().DropTable(&Payment{})
+		DB.Migrator().DropTable(&User{})
 	}
 
 	DB.AutoMigrate(&Reading{})
